@@ -35,6 +35,7 @@ export default function ShareDialog({ open, onClose, year, month, data }) {
   const [creating, setCreating] = useState(false);
   const [copySuccess, setCopySuccess] = useState('');
   const [error, setError] = useState('');
+  const [dashboardName, setDashboardName] = useState('');
 
   useEffect(() => {
     if (open && auth.currentUser) {
@@ -65,13 +66,17 @@ export default function ShareDialog({ open, onClose, year, month, data }) {
         auth.currentUser.uid,
         year,
         month,
-        data
+        data,
+        dashboardName.trim() || null
       );
       const shareUrl = `${window.location.origin}/shared/${shareId}`;
 
       // Copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
       setCopySuccess('Share link created and copied to clipboard!');
+
+      // Reset the dashboard name
+      setDashboardName('');
 
       // Reload shared links
       await loadSharedLinks();
@@ -161,6 +166,16 @@ export default function ShareDialog({ open, onClose, year, month, data }) {
           mode.
         </Typography>
 
+        <TextField
+          label="Dashboard Name (Optional)"
+          value={dashboardName}
+          onChange={(e) => setDashboardName(e.target.value)}
+          placeholder={`${getMonthName(month)} ${year} Expenses`}
+          fullWidth
+          sx={{ mb: 2 }}
+          helperText="Give your shared dashboard a custom name to make it easier to identify"
+        />
+
         <Button
           variant='contained'
           onClick={handleCreateShare}
@@ -201,8 +216,13 @@ export default function ShareDialog({ open, onClose, year, month, data }) {
                   primary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Typography variant='subtitle1'>
-                        {getMonthName(link.month)} {link.year}
+                        {link.name || `${getMonthName(link.month)} ${link.year}`}
                       </Typography>
+                      {link.name && (
+                        <Typography variant='caption' color='text.secondary'>
+                          ({getMonthName(link.month)} {link.year})
+                        </Typography>
+                      )}
                       {(() => {
                         const items = link.data?.items || [];
                         const hasPartialPaid = items.some(

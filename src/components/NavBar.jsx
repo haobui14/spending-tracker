@@ -27,13 +27,20 @@ import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import TranslateIcon from "@mui/icons-material/Translate";
 import { auth } from "../utils/firebase";
+import { clearAllCache } from "../utils/cacheManager";
+import appTheme from "../theme";
 
 export default function NavBar({ mode, toggleMode }) {
   const { t, language } = useTranslation();
   const { toggleLanguage } = useLanguage();
   
   const handleLogout = () => {
-    auth.signOut();
+    // Clear all cached data on logout using cache manager
+    clearAllCache();
+    // Force page reload to clear any remaining cache
+    auth.signOut().then(() => {
+      window.location.reload();
+    });
   };
   const navigate = useNavigate();
   const location = useLocation();
@@ -52,11 +59,11 @@ export default function NavBar({ mode, toggleMode }) {
       color="default"
       elevation={0}
       sx={{
-        background: "rgba(255,255,255,0.85)",
+        background: appTheme.colors.navbar.background,
         backdropFilter: "blur(8px)",
         borderRadius: 0,
-        boxShadow: "0 2px 16px 0 rgba(33, 154, 111, 0.08)",
-        borderBottom: "1px solid #e0eafc",
+        boxShadow: `0 2px 16px 0 ${appTheme.colors.navbar.hover}`,
+        borderBottom: `1px solid ${appTheme.colors.navbar.border}`,
         width: "100%",
         overflowX: "hidden",
         boxSizing: "border-box",
@@ -165,7 +172,12 @@ export default function NavBar({ mode, toggleMode }) {
                 anchor="right"
                 open={drawerOpen}
                 onClose={() => setDrawerOpen(false)}
-                PaperProps={{ sx: { background: "#232a3a", color: "white" } }}
+                PaperProps={{ 
+                  sx: { 
+                    background: appTheme.colors.navbar.drawer, 
+                    color: appTheme.colors.text.inverse 
+                  } 
+                }}
               >
                 <Box sx={{ width: 220, pt: 2 }} role="presentation">
                   <List>
@@ -195,13 +207,13 @@ export default function NavBar({ mode, toggleMode }) {
                       <ListItemButton
                         onClick={handleLogout}
                         sx={{
-                          color: "#ff4d4d",
+                          color: appTheme.colors.navbar.logout,
                           mt: 1,
                           borderTop: 1,
                           borderColor: "rgba(255,255,255,0.12)",
                         }}
                       >
-                        <ListItemIcon sx={{ color: "#ff4d4d" }}>
+                        <ListItemIcon sx={{ color: appTheme.colors.navbar.logout }}>
                           <LogoutIcon />
                         </ListItemIcon>
                         <ListItemText primary={t('logout')} />
@@ -316,7 +328,7 @@ export default function NavBar({ mode, toggleMode }) {
                   },
                   whiteSpace: "nowrap",
                   minWidth: 0,
-                  color: "#ff4d4d",
+                  color: appTheme.colors.navbar.logout,
                 }}
               >
                 {t('logout')}

@@ -8,26 +8,45 @@ import {
   Box,
   Chip,
   Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Card,
+  CardContent,
+  Typography,
 } from "@mui/material";
 import NotesIcon from "@mui/icons-material/Notes";
 import { useTheme } from "@mui/material/styles";
 import { useTranslation } from "../hooks/useTranslation";
 import SpendingItemActions from "./SpendingItemActions";
+import appTheme from "../theme";
 
 export default function SpendingItem({
   item,
   spendingManager,
   spendings,
   loading,
+  defaultCategories = [],
+  compact = false,
 }) {
   const { t } = useTranslation();
   const theme = useTheme();
 
   const getItemStatus = () => {
-    if (item.paid) return { label: t("paid"), color: "success" };
+    if (item.paid) return { 
+      label: t("paid"), 
+      styles: appTheme.components.chip.paid 
+    };
     if ((item.amountPaid || 0) > 0)
-      return { label: t("partialPaid"), color: "warning" };
-    return { label: t("unpaid"), color: "default" };
+      return { 
+        label: t("partial"), 
+        styles: appTheme.components.chip.partial 
+      };
+    return { 
+      label: t("unpaid"), 
+      styles: appTheme.components.chip.unpaid 
+    };
   };
 
   const status = getItemStatus();
@@ -35,89 +54,134 @@ export default function SpendingItem({
   const isEditing = spendingManager.editId === item.id;
 
   return (
-    <ListItem
+    <Card
+      variant="outlined"
       sx={{
-        opacity: item.paid ? 0.5 : 1,
-        borderRadius: 2,
-        mb: 1,
-        boxShadow: item.paid ? 0 : 1,
-        background: item.paid
-          ? theme.palette.background.default
+        mb: compact ? 0 : 1,
+        border: compact ? 'none' : `1px solid ${theme.palette.mode === 'dark' ? '#374151' : '#e2e8f0'}`,
+        backgroundColor: item.paid 
+          ? (theme.palette.mode === 'dark' ? '#1e293b' : '#f8fafc')
           : theme.palette.background.paper,
-        border: `2px solid ${
-          theme.palette.mode === "dark" ? "#223366" : "#e0eafc"
-        }`,
-        transition: "background 0.2s",
-        "&:hover": {
-          background: theme.palette.action.hover,
+        opacity: item.paid ? 0.7 : 1,
+        borderRadius: compact ? 0 : 2,
+        '&:hover': { 
+          boxShadow: compact ? 0 : 2,
+          backgroundColor: theme.palette.mode === 'dark' ? '#1e293b' : '#f8fafc',
         },
+        transition: 'all 0.2s ease',
+        borderLeft: compact ? 'none' : undefined,
+        borderRight: compact ? 'none' : undefined,
+        borderTop: compact ? (item === 0 ? 'none' : `1px solid ${theme.palette.mode === 'dark' ? '#374151' : '#e2e8f0'}`) : undefined,
+        borderBottom: compact ? 'none' : undefined,
       }}
     >
       {isEditing ? (
-        <>
-          <TextField
-            value={spendingManager.editName}
-            onChange={(e) => spendingManager.setEditName(e.target.value)}
-            size="small"
-            sx={{ mr: 1, width: 120 }}
-            disabled={loading}
-            autoFocus
-          />
-          <TextField
-            value={spendingManager.editAmount}
-            onChange={(e) => spendingManager.setEditAmount(e.target.value)}
-            size="small"
-            type="number"
-            sx={{ mr: 1, width: 80 }}
-            disabled={loading}
-          />
-          <Button
-            onClick={() => spendingManager.handleEditSave(item.id)}
-            size="small"
-            color="success"
-            variant="contained"
-            sx={{ mr: 1 }}
-            disabled={loading}
-          >
-            {t("save")}
-          </Button>
-          <Button
-            onClick={spendingManager.handleCancelEdit}
-            size="small"
-            color="inherit"
-            variant="outlined"
-            disabled={loading}
-          >
-            {t("cancel")}
-          </Button>
-        </>
+        <CardContent sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+              <TextField
+                value={spendingManager.editName}
+                onChange={(e) => spendingManager.setEditName(e.target.value)}
+                size="small"
+                label="Name"
+                sx={{ minWidth: 120, flexGrow: 1 }}
+                disabled={loading}
+                autoFocus
+              />
+              <FormControl size="small" sx={{ minWidth: 120 }} disabled={loading}>
+                <InputLabel>Category</InputLabel>
+                <Select
+                  value={spendingManager.editCategory || item.category || 'general'}
+                  onChange={(e) => spendingManager.setEditCategory(e.target.value)}
+                  label="Category"
+                >
+                  {defaultCategories.map((category) => (
+                    <MenuItem key={category.id} value={category.id}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            backgroundColor: category.color,
+                          }}
+                        />
+                        {category.name}
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <TextField
+                value={spendingManager.editAmount}
+                onChange={(e) => spendingManager.setEditAmount(e.target.value)}
+                size="small"
+                type="number"
+                label="Amount"
+                sx={{ minWidth: 80 }}
+                disabled={loading}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+              <Button
+                onClick={() => spendingManager.handleEditSave(item.id)}
+                size="small"
+                variant="contained"
+                sx={{ 
+                  backgroundColor: appTheme.colors.primary.main,
+                  '&:hover': {
+                    backgroundColor: appTheme.colors.primary.dark,
+                  },
+                }}
+                disabled={loading}
+              >
+                {t("save")}
+              </Button>
+              <Button
+                onClick={spendingManager.handleCancelEdit}
+                size="small"
+                color="inherit"
+                variant="outlined"
+                disabled={loading}
+              >
+                {t("cancel")}
+              </Button>
+            </Box>
+          </Box>
+        </CardContent>
       ) : (
-        <>
-          <ListItemText
-            primary={
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <span style={{ fontWeight: 600 }}>{item.name}</span>
-                <Chip label={status.label} color={status.color} size="small" />
-              </Box>
-            }
-            secondary={
-              <>
-                <span style={{ fontWeight: 500 }}>
-                  {item.amountPaid ? `$${item.amountPaid.toFixed(2)} / ` : ""}$
-                  {item.amount.toFixed(2)}
-                </span>
-                {item.note && (
-                  <Tooltip title={item.note}>
-                    <NotesIcon
-                      fontSize="small"
-                      sx={{ ml: 1, color: "#1976d2" }}
-                    />
-                  </Tooltip>
-                )}
-              </>
-            }
-          />
-          <ListItemSecondaryAction>
+        <CardContent sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Typography variant="body1" fontWeight={600} color={theme.palette.text.primary}>
+              {item.name}
+            </Typography>
+            <Typography variant="body1" fontWeight={600} color={theme.palette.text.primary}>
+              {item.amountPaid ? `$${item.amountPaid.toFixed(2)} / ` : ""}$
+              {item.amount.toFixed(2)}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", mb: 1 }}>
+            {item.note && (
+              <Tooltip title={item.note}>
+                <NotesIcon
+                  fontSize="small"
+                  sx={{ color: appTheme.colors.calendar.current }}
+                />
+              </Tooltip>
+            )}
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Chip 
+              label={status.label} 
+              size="small" 
+              sx={{
+                ...status.styles,
+                fontWeight: 500,
+              }}
+            />
+            
             <SpendingItemActions
               item={item}
               loading={loading}
@@ -133,9 +197,9 @@ export default function SpendingItem({
                 spendingManager.handleOpenNoteDialog(item)
               }
             />
-          </ListItemSecondaryAction>
-        </>
+          </Box>
+        </CardContent>
       )}
-    </ListItem>
+    </Card>
   );
 }

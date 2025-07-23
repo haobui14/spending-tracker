@@ -10,6 +10,21 @@ export const translations = {
     monthlySpending: "Monthly Spending",
     markPartialPaid: "Mark as Partial Paid",
 
+    // Welcome Page
+    welcomeSubtitle: "Professional financial management solution for modern businesses and individuals",
+    getStarted: "Get Started",
+    viewDemo: "View Demo",
+    whyChooseUs: "Why Choose SpendingTracker Pro?",
+    whyChooseUsDesc: "Discover the features that make us the leading choice for financial tracking",
+    smartTracking: "Smart Tracking",
+    smartTrackingDesc: "Intelligent categorization and automated expense tracking with advanced analytics",
+    secureData: "Secure & Private",
+    secureDataDesc: "Bank-level security with end-to-end encryption to protect your financial data",
+    detailedAnalytics: "Detailed Analytics",
+    detailedAnalyticsDesc: "Comprehensive reports and insights to help you make informed financial decisions",
+    cloudSync: "Cloud Synchronization",
+    cloudSyncDesc: "Access your data anywhere with real-time synchronization across all devices",
+
     // Common actions
     add: "Add",
     edit: "Edit",
@@ -21,6 +36,10 @@ export const translations = {
     loading: "Loading...",
     yes: "Yes",
     no: "No",
+
+    // Date/Time
+    month: "Month",
+    year: "Year",
 
     // Form fields
     name: "Name",
@@ -34,7 +53,24 @@ export const translations = {
     // Status labels
     unpaid: "Unpaid",
     paid: "Paid",
+    partial: "Partial",
     partiallyPaid: "Partially Paid",
+
+    // Categories
+    category: "Category",
+    general: "General",
+    housing: "Housing",
+    food: "Food",
+    transportation: "Transportation",
+    utilities: "Utilities",
+    entertainment: "Entertainment",
+    healthcare: "Healthcare",
+    shopping: "Shopping",
+    
+    // View modes
+    list: "List",
+    item: "item",
+    items: "items",
 
     // Spending management
     addSpendingItem: "Add Spending Item",
@@ -50,6 +86,16 @@ export const translations = {
     addTab: "Add Tab",
     tabName: "Tab Name",
     addTabTitle: "Add New Tab",
+
+    // Summary labels
+    totalAmount: "Total: $${amount}",
+    paidAmount: "Paid: $${amount}",
+    unpaidAmount: "Unpaid: $${amount}",
+    
+    // Simple labels (for demo/display)
+    totalAmountLabel: "Total Amount",
+    paidAmountLabel: "Paid Amount", 
+    unpaidAmountLabel: "Unpaid Amount",
 
     // Months
     january: "January",
@@ -135,6 +181,7 @@ export const translations = {
     markAsFullyPaid: "Mark All as Fully Paid",
     markPartialPaidAll: "Mark All as Partial Paid",
     noSpendingsYet: "No spendings yet",
+    
 
     // Spending Dialogs
     note: "Note",
@@ -153,6 +200,21 @@ export const translations = {
     dashboardWelcome: "Chào mừng đến với tổng quan chi tiêu hàng tháng",
     monthlySpending: "Chi Tiêu Hàng Tháng",
     markPartialPaid: "Đánh Dấu Trả Một Phần",
+
+    // Welcome Page
+    welcomeSubtitle: "Giải pháp quản lý tài chính chuyên nghiệp cho doanh nghiệp và cá nhân hiện đại",
+    getStarted: "Bắt Đầu",
+    viewDemo: "Xem Demo",
+    whyChooseUs: "Tại Sao Chọn SpendingTracker Pro?",
+    whyChooseUsDesc: "Khám phá các tính năng khiến chúng tôi trở thành lựa chọn hàng đầu cho việc theo dõi tài chính",
+    smartTracking: "Theo Dõi Thông Minh",
+    smartTrackingDesc: "Phân loại thông minh và theo dõi chi phí tự động với phân tích nâng cao",
+    secureData: "Bảo Mật & Riêng Tư",
+    secureDataDesc: "Bảo mật cấp ngân hàng với mã hóa đầu cuối để bảo vệ dữ liệu tài chính của bạn",
+    detailedAnalytics: "Phân Tích Chi Tiết",
+    detailedAnalyticsDesc: "Báo cáo và thông tin chi tiết toàn diện để giúp bạn đưa ra quyết định tài chính sáng suốt",
+    cloudSync: "Đồng Bộ Đám Mây",
+    cloudSyncDesc: "Truy cập dữ liệu của bạn ở bất kỳ đâu với đồng bộ hóa thời gian thực trên tất cả thiết bị",
 
     // Common actions
     add: "Thêm",
@@ -178,7 +240,24 @@ export const translations = {
     // Status labels
     unpaid: "Chưa Trả",
     paid: "Đã Trả",
+    partial: "Một Phần",
     partiallyPaid: "Trả Một Phần",
+
+    // Categories
+    category: "Danh Mục",
+    general: "Chung",
+    housing: "Nhà Ở",
+    food: "Thức Ăn",
+    transportation: "Giao Thông",
+    utilities: "Tiện Ích",
+    entertainment: "Giải Trí",
+    healthcare: "Y Tế",
+    shopping: "Mua Sắm",
+    
+    // View modes
+    list: "Danh Sách",
+    item: "mục",
+    items: "mục",
 
     // Spending management
     addSpendingItem: "Thêm Khoản Chi Tiêu",
@@ -194,6 +273,16 @@ export const translations = {
     addTab: "Thêm Tab",
     tabName: "Tên Tab",
     addTabTitle: "Thêm Tab Mới",
+
+    // Summary labels
+    totalAmount: "Tổng: $${amount}",
+    paidAmount: "Đã trả: $${amount}",
+    unpaidAmount: "Chưa trả: $${amount}",
+    
+    // Simple labels (for demo/display)
+    totalAmountLabel: "Tổng Số Tiền",
+    paidAmountLabel: "Số Tiền Đã Trả",
+    unpaidAmountLabel: "Số Tiền Chưa Trả",
 
     // Months
     january: "Tháng Một",

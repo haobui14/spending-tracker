@@ -25,6 +25,8 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import useMonthlySpending from "../utils/useMonthlySpending";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "../hooks/useTranslation";
+import appTheme from "../theme";
+import Footer from "../components/Footer";
 
 export default function CalendarView() {
   const { t } = useTranslation();
@@ -77,11 +79,11 @@ export default function CalendarView() {
     const iconProps = { fontSize: 20 };
     switch (status) {
       case "paid":
-        return <CheckCircleIcon sx={{ ...iconProps, color: "#43e97b" }} />;
+        return <CheckCircleIcon sx={{ ...iconProps, color: appTheme.colors.financial.paid.main }} />;
       case "partial":
-        return <WarningIcon sx={{ ...iconProps, color: "#ff9800" }} />;
+        return <WarningIcon sx={{ ...iconProps, color: appTheme.colors.financial.partial.main }} />;
       case "unpaid":
-        return <ErrorIcon sx={{ ...iconProps, color: "#ff5722" }} />;
+        return <ErrorIcon sx={{ ...iconProps, color: appTheme.colors.financial.unpaid.main }} />;
       default:
         return null;
     }
@@ -90,19 +92,19 @@ export default function CalendarView() {
   const getStatusColor = (status) => {
     const colors = {
       paid: {
-        bg: "linear-gradient(145deg, #d4edda 0%, #c3e6cb 100%)",
-        border: "#28a745",
-        text: "#155724",
+        bg: appTheme.colors.financial.paid.background,
+        border: appTheme.colors.financial.paid.border,
+        text: appTheme.colors.financial.paid.text,
       },
       partial: {
-        bg: "linear-gradient(145deg, #fff3cd 0%, #ffeaa7 100%)",
-        border: "#ffc107",
-        text: "#856404",
+        bg: appTheme.colors.financial.partial.background,
+        border: appTheme.colors.financial.partial.border,
+        text: appTheme.colors.financial.partial.text,
       },
       unpaid: {
-        bg: "linear-gradient(145deg, #f8d7da 0%, #f5c6cb 100%)",
-        border: "#dc3545",
-        text: "#721c24",
+        bg: appTheme.colors.financial.unpaid.background,
+        border: appTheme.colors.financial.unpaid.border,
+        text: appTheme.colors.financial.unpaid.text,
       },
       default: {
         bg: theme.palette.background.paper,
@@ -195,20 +197,14 @@ export default function CalendarView() {
             <CalendarTodayIcon
               sx={{
                 fontSize: 28,
-                color: theme.palette.mode === "dark" ? "#64b5f6" : "#1976d2",
+                color: theme.palette.mode === "dark" ? "#60a5fa" : appTheme.colors.primary.main,
               }}
             />
             <Typography
               variant={isMobile ? "h5" : "h4"}
               fontWeight={800}
               sx={{
-                background:
-                  theme.palette.mode === "dark"
-                    ? "linear-gradient(45deg, #64b5f6 0%, #42a5f5 100%)"
-                    : "linear-gradient(45deg, #1976d2 0%, #1565c0 100%)",
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
+                color: theme.palette.text.primary,
                 letterSpacing: 1,
               }}
             >
@@ -221,8 +217,12 @@ export default function CalendarView() {
                 onClick={() => handleYearChange("prev")}
                 size="small"
                 sx={{
-                  color: theme.palette.primary.main,
-                  "&:hover": { bgcolor: "rgba(25, 118, 210, 0.1)" },
+                  color: theme.palette.mode === "dark" ? "#60a5fa" : appTheme.colors.primary.main,
+                  "&:hover": { 
+                    bgcolor: theme.palette.mode === "dark" 
+                      ? "#60a5fa15" 
+                      : appTheme.colors.primary.main + "15" 
+                  },
                 }}
               >
                 <ArrowBackIosIcon fontSize="small" />
@@ -234,10 +234,12 @@ export default function CalendarView() {
                 sx={{
                   fontWeight: 700,
                   fontSize: 16,
-                  color: theme.palette.primary.main,
-                  borderColor: theme.palette.primary.main,
+                  color: theme.palette.mode === "dark" ? "#60a5fa" : appTheme.colors.primary.main,
+                  borderColor: theme.palette.mode === "dark" ? "#60a5fa" : appTheme.colors.primary.main,
                   "&:hover": {
-                    bgcolor: "rgba(25, 118, 210, 0.1)",
+                    bgcolor: theme.palette.mode === "dark" 
+                      ? "#60a5fa15" 
+                      : appTheme.colors.primary.main + "15",
                   },
                 }}
               />
@@ -246,8 +248,12 @@ export default function CalendarView() {
                 onClick={() => handleYearChange("next")}
                 size="small"
                 sx={{
-                  color: theme.palette.primary.main,
-                  "&:hover": { bgcolor: "rgba(25, 118, 210, 0.1)" },
+                  color: theme.palette.mode === "dark" ? "#60a5fa" : appTheme.colors.primary.main,
+                  "&:hover": { 
+                    bgcolor: theme.palette.mode === "dark" 
+                      ? "#60a5fa15" 
+                      : appTheme.colors.primary.main + "15" 
+                  },
                 }}
               >
                 <ArrowForwardIosIcon fontSize="small" />
@@ -287,29 +293,24 @@ export default function CalendarView() {
                         transform: isSelected ? "scale(1.05)" : "scale(1)",
                         zIndex: isSelected ? 2 : 1,
                         background: isCurrent
-                          ? theme.palette.mode === "dark"
-                            ? "#1565c0"
-                            : "#e3f2fd"
+                          ? theme.palette.mode === "dark" ? "#1e3a8a" : "#e8f5e8"
                           : theme.palette.mode === "dark"
                           ? isSelected
-                            ? "linear-gradient(145deg, #1e293b 0%, #334155 100%)"
-                            : "linear-gradient(145deg, #1e293b 0%, #2d3748 100%)"
+                            ? "#1e40af"
+                            : "#1f2937"
                           : isSelected
                           ? statusColors.bg
-                          : "linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)",
+                          : theme.palette.background.paper,
                         border: `2px solid ${
                           isCurrent
-                            ? theme.palette.primary.main
+                            ? theme.palette.mode === "dark" ? "#3b82f6" : "#4caf50"
                             : isSelected
-                            ? statusColors.border
+                            ? theme.palette.mode === "dark" ? "#60a5fa" : statusColors.border
                             : "transparent"
                         }`,
                         "&:hover": {
-                          transform: "scale(1.08) translateY(-4px)",
-                          boxShadow:
-                            theme.palette.mode === "dark"
-                              ? "0 20px 40px rgba(0,0,0,0.3)"
-                              : "0 20px 40px rgba(0,0,0,0.15)",
+                          transform: "scale(1.02) translateY(-2px)",
+                          boxShadow: appTheme.shadows.md,
                           zIndex: 3,
                         },
                       }}
@@ -328,11 +329,9 @@ export default function CalendarView() {
                           fontWeight={700}
                           sx={{
                             color: isCurrent
-                              ? theme.palette.mode === "dark"
-                                ? "#ffffff"
-                                : theme.palette.primary.main
+                              ? theme.palette.mode === "dark" ? "#dbeafe" : "#2e7d32"
                               : theme.palette.mode === "dark"
-                              ? "#e2e8f0"
+                              ? "#f1f5f9"
                               : isSelected
                               ? statusColors.text
                               : theme.palette.text.primary,
@@ -374,8 +373,8 @@ export default function CalendarView() {
                               borderRadius: "50%",
                               background:
                                 theme.palette.mode === "dark"
-                                  ? "#ffffff"
-                                  : theme.palette.primary.main,
+                                  ? "#3b82f6"
+                                  : "#4caf50",
                             }}
                           />
                         )}
@@ -406,11 +405,11 @@ export default function CalendarView() {
                 <Box
                   sx={{
                     p: 4,
-                    background:
-                      theme.palette.mode === "dark"
-                        ? "linear-gradient(135deg, #1e293b 0%, #334155 100%)"
-                        : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                    color: "white",
+                    background: theme.palette.mode === "dark" 
+                      ? "#1e293b" 
+                      : appTheme.colors.background.paper,
+                    borderBottom: `2px solid ${theme.palette.divider}`,
+                    color: theme.palette.text.primary,
                     position: "relative",
                   }}
                 >
@@ -427,9 +426,12 @@ export default function CalendarView() {
                           monthData.status ? t(monthData.status) : t("noData")
                         }
                         sx={{
-                          bgcolor: "rgba(255, 255, 255, 0.2)",
-                          color: "white",
+                          bgcolor: theme.palette.mode === "dark" 
+                            ? "#334155" 
+                            : appTheme.colors.background.elevated,
+                          color: theme.palette.text.primary,
                           fontWeight: 600,
+                          border: `1px solid ${theme.palette.divider}`,
                         }}
                       />
                     </Box>
@@ -445,11 +447,21 @@ export default function CalendarView() {
                   ) : monthData ? (
                     <>
                       {/* Summary Cards */}
-                      <Grid container spacing={3} sx={{ mb: 4 }}>
+                      <Grid container spacing={3} sx={{ mb: 4, justifyContent: "center" }}>
                         <Grid item xs={6} md={3}>
-                          <Card elevation={4} sx={{ borderRadius: 3 }}>
+                          <Card elevation={4} sx={{ 
+                            borderRadius: 3,
+                            bgcolor: theme.palette.mode === "dark" ? "#1e293b" : theme.palette.background.paper 
+                          }}>
                             <CardContent sx={{ textAlign: "center", py: 2 }}>
-                              <TrendingUpIcon color="primary" sx={{ mb: 1 }} />
+                              <TrendingUpIcon 
+                                sx={{ 
+                                  mb: 1,
+                                  color: theme.palette.mode === "dark" 
+                                    ? "#60a5fa" 
+                                    : theme.palette.primary.main 
+                                }} 
+                              />
                               <Typography variant="h6" fontWeight={700}>
                                 {monthData.items?.length || 0}
                               </Typography>
@@ -464,11 +476,18 @@ export default function CalendarView() {
                         </Grid>
 
                         <Grid item xs={6} md={3}>
-                          <Card elevation={4} sx={{ borderRadius: 3 }}>
+                          <Card elevation={4} sx={{ 
+                            borderRadius: 3,
+                            bgcolor: theme.palette.mode === "dark" ? "#1e293b" : theme.palette.background.paper 
+                          }}>
                             <CardContent sx={{ textAlign: "center", py: 2 }}>
                               <AccountBalanceWalletIcon
-                                color="primary"
-                                sx={{ mb: 1 }}
+                                sx={{ 
+                                  mb: 1,
+                                  color: theme.palette.mode === "dark" 
+                                    ? "#60a5fa" 
+                                    : theme.palette.primary.main 
+                                }}
                               />
                               <Typography variant="h6" fontWeight={700}>
                                 {`$${monthData.total?.toFixed(2) || "0.00"}`}
@@ -484,15 +503,27 @@ export default function CalendarView() {
                         </Grid>
 
                         <Grid item xs={6} md={3}>
-                          <Card elevation={4} sx={{ borderRadius: 3 }}>
+                          <Card elevation={4} sx={{ 
+                            borderRadius: 3,
+                            bgcolor: theme.palette.mode === "dark" ? "#1e293b" : theme.palette.background.paper 
+                          }}>
                             <CardContent sx={{ textAlign: "center", py: 2 }}>
                               <CheckCircleIcon
-                                sx={{ color: "#43e97b", mb: 1 }}
+                                sx={{ 
+                                  color: theme.palette.mode === "dark" 
+                                    ? "#10b981" 
+                                    : appTheme.colors.financial.paid.main, 
+                                  mb: 1 
+                                }}
                               />
                               <Typography
                                 variant="h6"
                                 fontWeight={700}
-                                color="#43e97b"
+                                sx={{
+                                  color: theme.palette.mode === "dark" 
+                                    ? "#10b981" 
+                                    : appTheme.colors.financial.paid.text
+                                }}
                               >
                                 {`$${calculateTotals(monthData.items).paid.toFixed(2)}`}
                               </Typography>
@@ -507,13 +538,25 @@ export default function CalendarView() {
                         </Grid>
 
                         <Grid item xs={6} md={3}>
-                          <Card elevation={4} sx={{ borderRadius: 3 }}>
+                          <Card elevation={4} sx={{ 
+                            borderRadius: 3,
+                            bgcolor: theme.palette.mode === "dark" ? "#1e293b" : theme.palette.background.paper 
+                          }}>
                             <CardContent sx={{ textAlign: "center", py: 2 }}>
-                              <ErrorIcon sx={{ color: "#ff5722", mb: 1 }} />
+                              <ErrorIcon sx={{ 
+                                color: theme.palette.mode === "dark" 
+                                  ? "#ef4444" 
+                                  : appTheme.colors.financial.unpaid.main, 
+                                mb: 1 
+                              }} />
                               <Typography
                                 variant="h6"
                                 fontWeight={700}
-                                color="#ff5722"
+                                sx={{
+                                  color: theme.palette.mode === "dark" 
+                                    ? "#ef4444" 
+                                    : appTheme.colors.financial.unpaid.text
+                                }}
                               >
                                 {`$${calculateTotals(monthData.items).unpaid.toFixed(2)}`}
                               </Typography>
@@ -548,9 +591,12 @@ export default function CalendarView() {
                                 sx={{
                                   mb: 1.5,
                                   borderRadius: 2,
+                                  bgcolor: theme.palette.mode === "dark" ? "#1e293b" : theme.palette.background.paper,
                                   border: `1px solid ${
-                                    item.paid ? "#43e97b" : "#ff5722"
-                                  }22`,
+                                    item.paid 
+                                      ? theme.palette.mode === "dark" ? "#10b981" : appTheme.colors.financial.paid.border
+                                      : theme.palette.mode === "dark" ? "#ef4444" : appTheme.colors.financial.unpaid.border
+                                  }`,
                                 }}
                               >
                                 <CardContent
@@ -576,8 +622,12 @@ export default function CalendarView() {
                                       </Typography>
                                       <Typography
                                         variant="body1"
-                                        color="primary"
-                                        fontWeight={700}
+                                        sx={{
+                                          color: theme.palette.mode === "dark" 
+                                            ? "#60a5fa" 
+                                            : theme.palette.primary.main,
+                                          fontWeight: 700
+                                        }}
                                       >
                                         {`$${item.amount.toFixed(2)}`}
                                       </Typography>
@@ -585,8 +635,18 @@ export default function CalendarView() {
                                     <Chip
                                       size="small"
                                       label={t(item.paid ? "paid" : "unpaid")}
-                                      color={item.paid ? "success" : "error"}
-                                      variant="outlined"
+                                      sx={
+                                        theme.palette.mode === "dark" 
+                                          ? {
+                                              backgroundColor: item.paid ? "#065f46" : "#7f1d1d",
+                                              color: item.paid ? "#10b981" : "#ef4444",
+                                              fontWeight: 600,
+                                              border: `1px solid ${item.paid ? "#10b981" : "#ef4444"}`,
+                                            }
+                                          : item.paid 
+                                            ? appTheme.components.chip.paid
+                                            : appTheme.components.chip.unpaid
+                                      }
                                     />
                                   </Box>
                                 </CardContent>
@@ -625,13 +685,16 @@ export default function CalendarView() {
                             px: 4,
                             py: 1.5,
                             borderRadius: 3,
-                            background:
-                              "linear-gradient(45deg, #667eea 0%, #764ba2 100%)",
-                            boxShadow: "0 8px 24px rgba(102, 126, 234, 0.4)",
+                            backgroundColor: theme.palette.mode === "dark" 
+                              ? "#1e40af" 
+                              : appTheme.colors.primary.main,
+                            color: "#ffffff",
+                            boxShadow: appTheme.shadows.md,
                             "&:hover": {
-                              background:
-                                "linear-gradient(45deg, #764ba2 0%, #667eea 100%)",
-                              boxShadow: "0 12px 32px rgba(102, 126, 234, 0.5)",
+                              backgroundColor: theme.palette.mode === "dark" 
+                                ? "#1d4ed8" 
+                                : appTheme.colors.primary.dark,
+                              boxShadow: appTheme.shadows.lg,
                               transform: "translateY(-2px)",
                             },
                           }}
@@ -655,6 +718,8 @@ export default function CalendarView() {
           </Fade>
         )}
       </Box>
+      
+      <Footer />
     </Box>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import AddIcon from "@mui/icons-material/Add";
@@ -9,7 +9,6 @@ import {
   Typography,
   TextField,
   Button,
-  Paper,
   List,
   ListItem,
   ListItemText,
@@ -24,62 +23,148 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Card,
+  CardContent,
+  Grid,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import useMonthlySpending from "../utils/useMonthlySpending";
 import useSpendingManager from '../hooks/useSpendingManager';
+import appTheme, { colors } from "../theme";
 import SpendingItem from "./SpendingItem";
 import SpendingDialogs from "./SpendingDialogs";
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '../utils/firebase';
 
 export default function MonthlySpending({ year, month, onDataChange }) {
   const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [user] = useAuthState(auth);
   
   const { data, saveData, updateData, loading, error } = useMonthlySpending(year, month);
   
-  // Tabs state
-  const [tabs, setTabs] = useState(() => {
-    const saved = localStorage.getItem("spendingTabs");
-    if (saved) return JSON.parse(saved);
-    return [{ id: 0, label: t('main'), key: "main" }];
+  // Helper function to get user-specific localStorage keys
+  const getUserStorageKey = useCallback((key) => {
+    return user ? `${key}_${user.uid}` : key;
+  }, [user]);
+  
+  // Default categories
+  const defaultCategories = [
+    { id: 'general', name: t('general'), color: colors.neutral[500] },
+    { id: 'housing', name: t('housing'), color: colors.primary.main },
+    { id: 'food', name: t('food'), color: colors.financial.paid.main },
+    { id: 'transportation', name: t('transportation'), color: colors.financial.partial.main },
+    { id: 'utilities', name: t('utilities'), color: colors.financial.unpaid.main },
+    { id: 'entertainment', name: t('entertainment'), color: colors.neutral[600] },
+    { id: 'healthcare', name: t('healthcare'), color: colors.neutral[700] },
+    { id: 'shopping', name: t('shopping'), color: colors.neutral[800] },
+  ];
+  
+  // View mode state
+  const [viewMode, setViewMode] = useState(() => {
+    const saved = localStorage.getItem(getUserStorageKey("spendingViewMode"));
+    return saved || "list";
   });
   
+  // Category state for new spending item
+  const [selectedCategory, setSelectedCategory] = useState('general');
+  
+  // Tabs state - reset when year/month changes
+  const [tabs, setTabs] = useState([{ id: 0, label: 'Main', key: "main" }]);
+  
   const [activeTab, setActiveTab] = useState(0);
-  const [tabSpendings, setTabSpendings] = useState(() => {
-    const saved = localStorage.getItem("spendingTabSpendings");
-    if (saved) return JSON.parse(saved);
-    return {};
-  });
+  const [tabSpendings, setTabSpendings] = useState({});
   
   // Tab management state
   const [renamingTabIdx, setRenamingTabIdx] = useState(null);
   const [renameValue, setRenameValue] = useState("");
   const [deleteTabIdx, setDeleteTabIdx] = useState(null);
-
-  // Sync main tab with backend data
+  
+  // Save view mode preference
   useEffect(() => {
+    localStorage.setItem(getUserStorageKey("spendingViewMode"), viewMode);
+  }, [viewMode, getUserStorageKey]);
+
+  // Clear localStorage cache when year/month changes
+  useEffect(() => {
+    console.log('MonthlySpending - year/month changed, clearing cache');
+    // For month/year changes, we want to load fresh data but keep offline cache
+    // Only clear the current session's tab data, not the persistent offline cache
+    const currentSessionKey = getUserStorageKey(`session_${year}_${month}`);
+    localStorage.removeItem(currentSessionKey);
+    
+    // Reset to default state for new month/year (use static label to avoid language dependency)
+    setTabs([{ id: 0, label: 'Main', key: "main" }]);
+    setTabSpendings({});
+    setActiveTab(0);
+  }, [year, month, getUserStorageKey]);
+
+  // Update main tab label when language changes (without resetting data)
+  useEffect(() => {
+    setTabs(prevTabs => 
+      prevTabs.map(tab => 
+        tab.key === 'main' 
+          ? { ...tab, label: t('main') }
+          : tab
+      )
+    );
+  }, [t]);
+
+  // Load from offline cache when starting up
+  useEffect(() => {
+    const offlineCacheKey = getUserStorageKey(`offline_${year}_${month}`);
+    const cachedData = localStorage.getItem(offlineCacheKey);
+    
+    if (cachedData && !data) {
+      console.log('Loading from offline cache for', year, month);
+      try {
+        const parsedData = JSON.parse(cachedData);
+        setTabSpendings({ main: parsedData });
+      } catch (e) {
+        console.error('Error parsing offline cache:', e);
+      }
+    }
+  }, [year, month, getUserStorageKey, data]);
+
+  // Sync main tab with backend data and update offline cache
+  useEffect(() => {
+    console.log('MonthlySpending - data changed:', data);
     if (data) {
+      // Update current session data
       setTabSpendings((prev) => {
         const updated = { ...prev, main: data };
-        localStorage.setItem("spendingTabSpendings", JSON.stringify(updated));
+        const sessionKey = getUserStorageKey(`session_${year}_${month}`);
+        localStorage.setItem(sessionKey, JSON.stringify(updated));
         return updated;
       });
+      
+      // Update offline cache for this specific month/year
+      const offlineCacheKey = getUserStorageKey(`offline_${year}_${month}`);
+      localStorage.setItem(offlineCacheKey, JSON.stringify(data));
+      console.log('Cached data for offline use:', offlineCacheKey);
     }
-  }, [data]);
+  }, [data, year, month, getUserStorageKey]);
 
   // Sync tabs and tabSpendings to localStorage
   useEffect(() => {
-    localStorage.setItem("spendingTabs", JSON.stringify(tabs));
-  }, [tabs]);
+    localStorage.setItem(getUserStorageKey("spendingTabs"), JSON.stringify(tabs));
+  }, [tabs, getUserStorageKey]);
   
   useEffect(() => {
-    localStorage.setItem("spendingTabSpendings", JSON.stringify(tabSpendings));
-  }, [tabSpendings]);
+    localStorage.setItem(getUserStorageKey("spendingTabSpendings"), JSON.stringify(tabSpendings));
+  }, [tabSpendings, getUserStorageKey]);
 
   // Computed values
   const currentTabKey = tabs[activeTab]?.key || "main";
-  const spendings = tabSpendings[currentTabKey]?.items || [];
+  const spendings = useMemo(() => {
+    return tabSpendings[currentTabKey]?.items || [];
+  }, [tabSpendings, currentTabKey]);
+  
   const hasPartialPaid = spendings.some(item => item.amountPaid > 0 && !item.paid);
   
   let monthPaidStatus = "unpaid";
@@ -90,7 +175,23 @@ export default function MonthlySpending({ year, month, onDataChange }) {
   const paid = spendings.reduce((sum, s) => sum + (s.amountPaid || 0), 0);
   const unpaid = total - paid;
 
-  // Use the spending manager hook (after computed values)
+  // Group spendings by category
+  const groupedSpendings = useMemo(() => {
+    const groups = {};
+    spendings.forEach(spending => {
+      const categoryId = spending.category || 'general';
+      if (!groups[categoryId]) {
+        groups[categoryId] = [];
+      }
+      groups[categoryId].push(spending);
+    });
+    return groups;
+  }, [spendings]);
+
+  // Get category info
+  const getCategoryInfo = (categoryId) => {
+    return defaultCategories.find(cat => cat.id === categoryId) || defaultCategories[0];
+  };  // Use the spending manager hook (after computed values)
   const spendingManager = useSpendingManager(
     data, 
     saveData, 
@@ -147,7 +248,7 @@ export default function MonthlySpending({ year, month, onDataChange }) {
 
   // Batch update for partial paid (applies partial across all items, not per item)
   const handlePartialPaid = () => {
-    spendingManager.handlePartialPaid();
+    spendingManager.handlePartialPaid(spendings);
   };
 
   const handleSaveNote = () => {
@@ -156,21 +257,18 @@ export default function MonthlySpending({ year, month, onDataChange }) {
 
   // Tab UI
   return (
-    <Paper
-      elevation={6}
+    <Box
       sx={{
         p: isMobile ? 2 : 4,
-        mt: 4,
+        mt: 2,
         borderRadius: 4,
-        boxShadow: 8,
         maxWidth: 700,
         mx: "auto",
-        my: 4,
+        my: 2,
         background: theme.palette.background.paper,
         position: "relative",
-        border: `2.5px solid ${
-          theme.palette.mode === "dark" ? "#223366" : "#e0eafc"
-        }`,
+        border: theme.palette.mode === 'dark' ? `1px solid #374151` : `1px solid ${appTheme.colors.border.light}`,
+        boxShadow: theme.palette.mode === 'dark' ? '0 4px 6px rgba(0, 0, 0, 0.3)' : 2,
       }}
     >
       {/* Tabs for multiple spending categories */}
@@ -337,27 +435,62 @@ export default function MonthlySpending({ year, month, onDataChange }) {
           {error.message || t('errorOccurred')}
         </Alert>
       )}
-      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-        <Typography variant="h6" fontWeight={700} sx={{ flexGrow: 1 }}>
-          {t('monthlySpending')}
-        </Typography>
-        <Chip
-          label={
-            monthPaidStatus === "paid"
-              ? t('paid')
-              : monthPaidStatus === "partial"
-              ? t('partialPaid')
-              : t('unpaid')
-          }
-          color={
-            monthPaidStatus === "paid"
-              ? "success"
-              : monthPaidStatus === "partial"
-              ? "warning"
-              : "error"
-          }
-          sx={{ fontWeight: 700, fontSize: 16 }}
-        />
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Button
+            variant={viewMode === 'list' ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => setViewMode('list')}
+            sx={{ 
+              minWidth: 80,
+              backgroundColor: viewMode === 'list' ? '#1e40af' : 'transparent',
+              color: viewMode === 'list' ? '#ffffff' : '#60a5fa',
+              borderColor: '#60a5fa',
+              '&:hover': {
+                backgroundColor: viewMode === 'list' ? '#1e3a8a' : '#60a5fa15',
+                borderColor: '#60a5fa',
+              },
+            }}
+          >
+            {t('list')}
+          </Button>
+          <Button
+            variant={viewMode === 'category' ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => setViewMode('category')}
+            sx={{ 
+              minWidth: 80,
+              backgroundColor: viewMode === 'category' ? '#1e40af' : 'transparent',
+              color: viewMode === 'category' ? '#ffffff' : '#60a5fa',
+              borderColor: '#60a5fa',
+              '&:hover': {
+                backgroundColor: viewMode === 'category' ? '#1e3a8a' : '#60a5fa15',
+                borderColor: '#60a5fa',
+              },
+            }}
+          >
+            {t('category')}
+          </Button>
+          <Chip
+            label={
+              monthPaidStatus === "paid"
+                ? t('paid')
+                : monthPaidStatus === "partial"
+                ? t('partial')
+                : t('unpaid')
+            }
+            sx={{
+              fontWeight: 700,
+              fontSize: 16,
+              ...(monthPaidStatus === "paid" 
+                ? appTheme.components.chip.paid
+                : monthPaidStatus === "partial"
+                ? appTheme.components.chip.partial
+                : appTheme.components.chip.unpaid
+              ),
+            }}
+          />
+        </Box>
         {/* Remove tab button for non-main active tab */}
         {tabs[activeTab]?.key !== "main" && (
           <IconButton
@@ -372,7 +505,19 @@ export default function MonthlySpending({ year, month, onDataChange }) {
       </Box>
       <Box
         component="form"
-        onSubmit={(e) => spendingManager.handleAddSpending(e, spendings)}
+        onSubmit={(e) => {
+          e.preventDefault();
+          const newSpending = {
+            id: Date.now(),
+            name: spendingManager.name,
+            amount: parseFloat(spendingManager.amount),
+            category: selectedCategory,
+            paid: false,
+            amountPaid: 0
+          };
+          spendingManager.handleAddSpending(e, spendings, newSpending);
+          setSelectedCategory('general');
+        }}
         sx={{
           display: "flex",
           flexDirection: isMobile ? "column" : "row",
@@ -388,6 +533,30 @@ export default function MonthlySpending({ year, month, onDataChange }) {
           fullWidth={isMobile}
           disabled={loading}
         />
+        <FormControl sx={{ minWidth: 150 }} disabled={loading}>
+          <InputLabel>{t('category')}</InputLabel>
+          <Select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            label={t('category')}
+          >
+            {defaultCategories.map((category) => (
+              <MenuItem key={category.id} value={category.id}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      backgroundColor: category.color,
+                    }}
+                  />
+                  {category.name}
+                </Box>
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         <TextField
           label={t('amount')}
           value={spendingManager.amount}
@@ -398,11 +567,19 @@ export default function MonthlySpending({ year, month, onDataChange }) {
           fullWidth={isMobile}
           disabled={loading}
         />
-                  <Button
+        <Button
           type="submit"
           variant="contained"
-          color="success"
-          sx={{ minWidth: 100, fontWeight: 700, fontSize: 16 }}
+          sx={{ 
+            minWidth: 100, 
+            fontWeight: 700, 
+            fontSize: 16,
+            backgroundColor: '#1e40af',
+            color: '#ffffff',
+            '&:hover': {
+              backgroundColor: '#1e3a8a',
+            },
+          }}
           disabled={loading}
         >
           {t('add')}
@@ -411,47 +588,145 @@ export default function MonthlySpending({ year, month, onDataChange }) {
       <Stack direction={isMobile ? "column" : "row"} spacing={2} sx={{ mb: 2 }}>
         <Button
           variant="contained"
-          color="primary"
           onClick={handleMarkMonthFullyPaid}
           disabled={spendings.length === 0 || paid === total || loading}
-          sx={{ fontWeight: 700 }}
+          sx={{ 
+            fontWeight: 700,
+            backgroundColor: '#16a34a',
+            color: '#ffffff',
+            '&:hover': {
+              backgroundColor: '#15803d',
+            },
+          }}
         >
           {t('markAsFullyPaid')}
         </Button>
         <Button
           variant="outlined"
-          color="warning"
           onClick={handleOpenPartialDialog}
           disabled={spendings.length === 0 || paid === total || loading}
-          sx={{ fontWeight: 700 }}
+          sx={{ 
+            fontWeight: 700,
+            borderColor: '#f59e0b',
+            color: '#f59e0b',
+            '&:hover': {
+              backgroundColor: '#f59e0b15',
+              borderColor: '#f59e0b',
+            },
+          }}
         >
           {t('markPartialPaidAll')}
         </Button>
       </Stack>
       <Divider sx={{ my: 2 }} />
-      <List>
-        {spendings.length === 0 ? (
-          <ListItem>
-            <ListItemText
-              primary={
-                <Typography color="text.secondary">
-                  {t('noSpendingsYet')}
-                </Typography>
-              }
-            />
-          </ListItem>
-        ) : (
-          spendings.map((s) => (
-            <SpendingItem
-              key={s.id}
-              item={s}
-              spendingManager={spendingManager}
-              spendings={spendings}
-              loading={loading}
-            />
-          ))
-        )}
-      </List>
+      
+      {/* Spending List */}
+      {viewMode === 'list' ? (
+        <Box>
+          {spendings.length === 0 ? (
+            <Box sx={{ py: 4, textAlign: 'center' }}>
+              <Typography color="text.secondary">
+                {t('noSpendingsYet')}
+              </Typography>
+            </Box>
+          ) : (
+            spendings.map((s) => (
+              <SpendingItem
+                key={s.id}
+                item={s}
+                spendingManager={spendingManager}
+                spendings={spendings}
+                loading={loading}
+                showCategory={true}
+                getCategoryInfo={getCategoryInfo}
+                defaultCategories={defaultCategories}
+              />
+            ))
+          )}
+        </Box>
+      ) : (
+        // Category View
+        <Box>
+          {spendings.length === 0 ? (
+            <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+              {t('noSpendingsYet')}
+            </Typography>
+          ) : (
+            Object.entries(groupedSpendings).map(([categoryId, categoryItems]) => {
+              const categoryInfo = getCategoryInfo(categoryId);
+              const categoryTotal = categoryItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+              const categoryPaid = categoryItems.reduce((sum, item) => sum + (item.amountPaid || 0), 0);
+              
+              return (
+                <Card key={categoryId} sx={{ 
+                  mb: 3, 
+                  border: theme.palette.mode === 'dark' ? `1px solid #374151` : `1px solid ${colors.neutral[200]}`,
+                  backgroundColor: theme.palette.background.paper,
+                }}>
+                  <Box sx={{ 
+                    p: 3, 
+                    borderBottom: theme.palette.mode === 'dark' ? `1px solid #374151` : `1px solid ${colors.neutral[200]}`, 
+                    bgcolor: theme.palette.mode === 'dark' ? '#1e293b' : colors.neutral[50],
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Box
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: '50%',
+                          backgroundColor: categoryInfo.color,
+                        }}
+                      />
+                      <Typography variant="h6" fontWeight={600} color={theme.palette.text.primary}>
+                        {categoryInfo.name}
+                      </Typography>
+                      <Chip
+                        label={`${categoryItems.length} ${categoryItems.length === 1 ? t('item') : t('items')}`}
+                        size="small"
+                        sx={{ 
+                          bgcolor: theme.palette.mode === 'dark' ? '#374151' : colors.neutral[200],
+                          color: theme.palette.text.primary,
+                        }}
+                      />
+                    </Box>
+                    <Box sx={{ textAlign: 'right' }}>
+                      <Typography variant="body2" color={theme.palette.text.secondary}>
+                        ${categoryPaid.toFixed(2)} / ${categoryTotal.toFixed(2)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box sx={{ p: 0 }}>
+                    {categoryItems.map((item, itemIndex) => (
+                      <Box
+                        key={item.id}
+                        sx={{
+                          borderTop: itemIndex === 0 ? 'none' : theme.palette.mode === 'dark' ? `1px solid #374151` : `1px solid ${colors.neutral[200]}`,
+                          '&:hover': { backgroundColor: theme.palette.mode === 'dark' ? '#1e293b' : colors.neutral[50] },
+                          transition: 'background-color 0.2s ease',
+                        }}
+                      >
+                        <SpendingItem
+                          item={item}
+                          spendingManager={spendingManager}
+                          spendings={spendings}
+                          loading={loading}
+                          showCategory={false}
+                          getCategoryInfo={getCategoryInfo}
+                          defaultCategories={defaultCategories}
+                          compact={true}
+                        />
+                      </Box>
+                    ))}
+                  </Box>
+                </Card>
+              );
+            })
+          )}
+        </Box>
+      )}
       <Divider sx={{ my: 2 }} />
       <Box
         sx={{
@@ -465,18 +740,33 @@ export default function MonthlySpending({ year, month, onDataChange }) {
       >
         <Chip
           label={t('totalAmount', { amount: total.toFixed(2) })}
-          color="primary"
-          sx={{ fontWeight: 600, fontSize: 16, minWidth: 120 }}
+          sx={{ 
+            fontWeight: 600, 
+            fontSize: 16, 
+            minWidth: 120,
+            backgroundColor: '#1e40af',
+            color: '#ffffff',
+          }}
         />
         <Chip
           label={t('paidAmount', { amount: paid.toFixed(2) })}
-          color="success"
-          sx={{ fontWeight: 600, fontSize: 16, minWidth: 120 }}
+          sx={{ 
+            fontWeight: 600, 
+            fontSize: 16, 
+            minWidth: 120,
+            backgroundColor: '#16a34a',
+            color: '#ffffff',
+          }}
         />
         <Chip
           label={t('unpaidAmount', { amount: unpaid.toFixed(2) })}
-          color="warning"
-          sx={{ fontWeight: 600, fontSize: 16, minWidth: 120 }}
+          sx={{ 
+            fontWeight: 600, 
+            fontSize: 16, 
+            minWidth: 120,
+            backgroundColor: '#dc2626',
+            color: '#ffffff',
+          }}
         />
       </Box>
       <SpendingDialogs
@@ -488,6 +778,6 @@ export default function MonthlySpending({ year, month, onDataChange }) {
         loading={loading}
         unpaid={unpaid}
       />
-    </Paper>
+    </Box>
   );
 }

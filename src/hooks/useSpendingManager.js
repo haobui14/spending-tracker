@@ -12,6 +12,7 @@ export default function useSpendingManager(data, saveData, updateData, currentTa
   const [editId, setEditId] = useState(null);
   const [editName, setEditName] = useState("");
   const [editAmount, setEditAmount] = useState("");
+  const [editCategory, setEditCategory] = useState("");
   
   // Dialog states
   const [partialDialogOpen, setPartialDialogOpen] = useState(false);
@@ -30,17 +31,18 @@ export default function useSpendingManager(data, saveData, updateData, currentTa
   // Force deleteItemId to always start as null
   const [deleteItemId, setDeleteItemId] = useState(null);
 
-  const handleAddSpending = (e, spendings) => {
+  const handleAddSpending = (e, spendings, customSpending = null) => {
     e.preventDefault();
     if (!name || !amount || isNaN(amount)) return;
     
-    const newItem = {
+    const newItem = customSpending || {
       id: Date.now(),
       name,
       amount: parseFloat(amount),
       paid: false,
       amountPaid: 0,
       note: "",
+      category: 'general',
     };
     
     const newItems = [...spendings, newItem];
@@ -85,13 +87,18 @@ export default function useSpendingManager(data, saveData, updateData, currentTa
     setEditId(item.id);
     setEditName(item.name);
     setEditAmount(item.amount.toString());
+    setEditCategory(item.category || 'general');
   };
 
   const handleEditSave = (id) => {
     if (!editName || !editAmount || isNaN(editAmount)) return;
     
     if (currentTabKey === "main") {
-      updateData(id, { name: editName, amount: parseFloat(editAmount) });
+      updateData(id, { 
+        name: editName, 
+        amount: parseFloat(editAmount),
+        category: editCategory 
+      });
     } else {
       setTabSpendings((prev) => ({
         ...prev,
@@ -99,7 +106,7 @@ export default function useSpendingManager(data, saveData, updateData, currentTa
           ...prev[currentTabKey],
           items: prev[currentTabKey].items.map((item) =>
             item.id === id
-              ? { ...item, name: editName, amount: parseFloat(editAmount) }
+              ? { ...item, name: editName, amount: parseFloat(editAmount), category: editCategory }
               : item
           ),
         },
@@ -113,6 +120,7 @@ export default function useSpendingManager(data, saveData, updateData, currentTa
     setEditId(null);
     setEditName("");
     setEditAmount("");
+    setEditCategory("");
   };
 
   const handleDelete = (id) => {
@@ -255,6 +263,74 @@ export default function useSpendingManager(data, saveData, updateData, currentTa
     setItemPartialAmount("");
   };
 
+  // Handle partial payment for all items (batch partial payment)
+  const handlePartialPaid = (spendings) => {
+    const partial = parseFloat(partialAmount);
+    const totalUnpaid = spendings.reduce((sum, s) => {
+      const remaining = s.amount - (s.amountPaid || 0);
+      return sum + (remaining > 0 ? remaining : 0);
+    }, 0);
+
+    if (isNaN(partial) || partial <= 0 || partial > totalUnpaid) {
+      setPartialError(t('enterValidAmount', { amount: totalUnpaid.toFixed(2) }));
+      return;
+    }
+
+    // Distribute the partial payment across unpaid items
+    let remainingAmount = partial;
+    const updatedItems = spendings.map((item) => {
+      if (remainingAmount <= 0 || item.paid) return item;
+      
+      const currentlyPaid = item.amountPaid || 0;
+      const remaining = item.amount - currentlyPaid;
+      
+      if (remaining <= 0) return item;
+      
+      const paymentForThisItem = Math.min(remaining, remainingAmount);
+      remainingAmount -= paymentForThisItem;
+      
+      const newAmountPaid = currentlyPaid + paymentForThisItem;
+      
+      return {
+        ...item,
+        amountPaid: newAmountPaid,
+        paid: newAmountPaid >= item.amount,
+      };
+    });
+
+    const newPaid = updatedItems.reduce((sum, s) => sum + (s.amountPaid || 0), 0);
+    const newTotal = updatedItems.reduce((sum, s) => sum + s.amount, 0);
+    let newStatus = "partial";
+    if (newPaid === newTotal && newTotal > 0) newStatus = "paid";
+
+    if (currentTabKey === "main") {
+      saveData({
+        ...data,
+        items: updatedItems,
+        total: newTotal,
+        paid: newPaid,
+        status: newStatus,
+        updatedAt: new Date(),
+      });
+    } else {
+      setTabSpendings((prev) => ({
+        ...prev,
+        [currentTabKey]: {
+          ...prev[currentTabKey],
+          items: updatedItems,
+          total: newTotal,
+          paid: newPaid,
+          status: newStatus,
+          updatedAt: new Date(),
+        },
+      }));
+    }
+
+    setPartialDialogOpen(false);
+    setPartialAmount("");
+    setPartialError("");
+  };
+
   return {
     // Form state
     name,
@@ -268,6 +344,8 @@ export default function useSpendingManager(data, saveData, updateData, currentTa
     setEditName,
     editAmount,
     setEditAmount,
+    editCategory,
+    setEditCategory,
     
     // Dialog states
     partialDialogOpen,
@@ -306,5 +384,6 @@ export default function useSpendingManager(data, saveData, updateData, currentTa
     handleSaveNote,
     handleOpenItemPartialDialog,
     handleItemPartialPaid,
+    handlePartialPaid,
   };
 }

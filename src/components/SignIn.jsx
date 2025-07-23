@@ -7,15 +7,16 @@ import {
   CircularProgress,
   Alert,
   Divider,
+  Typography,
 } from '@mui/material';
+import GoogleIcon from '@mui/icons-material/Google';
 import { auth } from '../utils/firebase';
 import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
 } from 'firebase/auth';
-
-const GREEN = '#219a6f';
+import appTheme from '../theme';
 
 export default function SignIn({ onSwitchMode, onForgotPassword }) {
   const { t } = useTranslation();
@@ -76,33 +77,38 @@ export default function SignIn({ onSwitchMode, onForgotPassword }) {
         <Button
           type='submit'
           variant='contained'
-          color='success'
           fullWidth
           sx={{
             mt: 2,
-            py: 1.2,
+            py: 1.5,
             fontWeight: 600,
-            fontSize: 16,
-            letterSpacing: 1,
+            backgroundColor: appTheme.colors.primary.main,
+            '&:hover': {
+              backgroundColor: appTheme.colors.primary.dark,
+            },
           }}
           disabled={loading}
         >
           {loading ? <CircularProgress size={24} color='inherit' /> : t('login')}
         </Button>
       </Box>
+      
       <Divider sx={{ my: 3 }}>{t('or')}</Divider>
+      
       <Button
         onClick={handleGoogleSignIn}
         variant='outlined'
-        color='success'
         fullWidth
+        startIcon={<GoogleIcon />}
         sx={{
-          py: 1.2,
+          py: 1.5,
           fontWeight: 600,
-          fontSize: 16,
-          letterSpacing: 1,
-          mb: 1,
-          border: `1.5px solid ${GREEN}`,
+          borderColor: '#e5e7eb',
+          color: '#374151',
+          '&:hover': {
+            backgroundColor: '#f9fafb',
+            borderColor: '#d1d5db',
+          },
         }}
         disabled={loading}
       >
@@ -112,18 +118,26 @@ export default function SignIn({ onSwitchMode, onForgotPassword }) {
           t('signInWithGoogle')
         )}
       </Button>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
         <Button
           onClick={onSwitchMode}
           size='small'
-          sx={{ textTransform: 'none', color: GREEN, fontWeight: 600 }}
+          sx={{ 
+            textTransform: 'none', 
+            color: appTheme.colors.primary.main, 
+            fontWeight: 600,
+          }}
         >
           {t('dontHaveAccount')}
         </Button>
         <Button
           onClick={onForgotPassword}
           size='small'
-          sx={{ textTransform: 'none', color: GREEN, fontWeight: 600 }}
+          sx={{ 
+            textTransform: 'none', 
+            color: appTheme.colors.primary.main, 
+            fontWeight: 600,
+          }}
         >
           {t('forgotPasswordQuestion')}
         </Button>

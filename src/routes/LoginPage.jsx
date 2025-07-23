@@ -3,7 +3,6 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   Box,
-  Paper,
   Typography,
   Dialog,
   DialogTitle,
@@ -19,10 +18,10 @@ import {
 import LanguageIcon from '@mui/icons-material/Language';
 import SignIn from '../components/SignIn';
 import SignUp from '../components/SignUp';
+import Footer from '../components/Footer';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../utils/firebase';
-
-const GREEN = '#219a6f';
+import theme from '../theme';
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -61,52 +60,69 @@ export default function LoginPage() {
         minHeight: '100vh',
         width: '100vw',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%)',
+        flexDirection: 'column',
+        backgroundColor: '#f8fafc',
         position: 'relative',
       }}
     >
-      {/* Language Toggle Button */}
-      <Tooltip title={`${t('language')}: ${language === 'en' ? t('english') : t('vietnamese')}`}>
-        <IconButton
-          onClick={toggleLanguage}
-          sx={{
-            position: 'absolute',
-            top: 20,
-            right: 20,
-            bgcolor: 'rgba(255, 255, 255, 0.9)',
-            boxShadow: 2,
-            '&:hover': {
-              bgcolor: 'rgba(255, 255, 255, 1)',
-            },
-          }}
-        >
-          <LanguageIcon />
-        </IconButton>
-      </Tooltip>
-      
+      <Box
+        sx={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          px: { xs: 2, sm: 4, md: 6 },
+          py: { xs: 2, md: 4 },
+        }}
+      >
       <Fade in timeout={600}>
-        <Paper
-          elevation={8}
+        <Box
           sx={{
-            p: 4,
+            p: { xs: 4, sm: 6, md: 8 },
             width: '100%',
-            maxWidth: 400,
+            maxWidth: { xs: 400, sm: 480, md: 520 },
             borderRadius: 4,
-            boxShadow: 8,
+            backgroundColor: 'white',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+            mx: 'auto',
             position: 'relative',
-            overflow: 'hidden',
           }}
         >
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          {/* Language Toggle Button */}
+          <Tooltip title={`${t('language')}: ${language === 'en' ? t('english') : t('vietnamese')}`}>
+            <IconButton
+              onClick={toggleLanguage}
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                bgcolor: '#f8fafc',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                border: '1px solid #e2e8f0',
+                zIndex: 10,
+                '&:hover': {
+                  bgcolor: '#e2e8f0',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                },
+              }}
+            >
+              <LanguageIcon sx={{ color: '#64748b' }} />
+            </IconButton>
+          </Tooltip>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: { xs: 2, md: 3 } }}>
             <img
               src='/pwa-192x192.png'
               alt='Spending Tracker'
-              style={{ width: 64, height: 64, borderRadius: '50%' }}
+              style={{ width: 80, height: 80, borderRadius: '50%' }}
             />
           </Box>
-          <Typography variant='h5' align='center' gutterBottom fontWeight={700}>
+          <Typography 
+            variant='h4' 
+            align='center' 
+            gutterBottom 
+            fontWeight={700}
+            sx={{ mb: { xs: 3, md: 4 }, color: '#1e293b' }}
+          >
             {mode === 'login' ? t('welcomeBack') : t('createAccount')}
           </Typography>
           {mode === 'login' ? (
@@ -117,8 +133,12 @@ export default function LoginPage() {
           ) : (
             <SignUp onSwitchMode={() => setMode('login')} />
           )}
-        </Paper>
+        </Box>
       </Fade>
+      </Box>
+
+      <Footer />
+
       <Dialog
         open={resetDialogOpen}
         onClose={() => {
@@ -161,7 +181,12 @@ export default function LoginPage() {
             onClick={handlePasswordReset}
             disabled={loading || !resetEmail}
             variant='contained'
-            color='success'
+            sx={{
+              backgroundColor: theme.colors.primary.main,
+              '&:hover': {
+                backgroundColor: theme.colors.primary.dark,
+              },
+            }}
           >
             {loading ? <span>{t('sending')}</span> : t('sendResetEmail')}
           </Button>

@@ -35,6 +35,9 @@ export const db = getFirestore(app);
 
 // --- Helper: get month doc ref ---
 export function getMonthDocRef(userId, year, month) {
+  console.log('getMonthDocRef called with:', { userId, year, month });
+  const docPath = `users/${userId}/months/${year}-${String(month).padStart(2, '0')}`;
+  console.log('Document path:', docPath);
   return doc(
     db,
     'users',
@@ -46,10 +49,14 @@ export function getMonthDocRef(userId, year, month) {
 
 // --- Fetch monthly spending data ---
 export async function fetchMonthlySpending(userId, year, month) {
+  console.log('fetchMonthlySpending called with:', { userId, year, month });
   const ref = getMonthDocRef(userId, year, month);
   const snap = await getDoc(ref);
+  console.log('Document exists:', snap.exists());
   if (!snap.exists()) return null;
-  return snap.data();
+  const data = snap.data();
+  console.log('Fetched data:', data);
+  return data;
 }
 
 // --- Add or update monthly spending data ---
@@ -76,12 +83,13 @@ export async function updateMonthlySpending(userId, year, month, fields) {
 }
 
 // --- Create a shared dashboard link ---
-export async function createSharedLink(userId, year, month, data) {
+export async function createSharedLink(userId, year, month, data, name = null) {
   const shareData = {
     userId,
     year,
     month,
     data,
+    name,
     createdAt: Timestamp.now(),
     // Expires in 30 days
     expiresAt: Timestamp.fromDate(

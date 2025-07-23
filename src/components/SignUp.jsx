@@ -3,8 +3,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { Box, TextField, Button, CircularProgress, Alert } from '@mui/material';
 import { auth } from '../utils/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-
-const GREEN = '#219a6f';
+import theme from '../theme';
 
 export default function SignUp({ onSwitchMode }) {
   const { t } = useTranslation();
@@ -52,14 +51,17 @@ export default function SignUp({ onSwitchMode }) {
         <Button
           type='submit'
           variant='contained'
-          color='success'
           fullWidth
           sx={{
             mt: 2,
             py: 1.2,
-            fontWeight: 600,
-            fontSize: 16,
+            fontWeight: theme.typography.fontWeight.semibold,
+            fontSize: theme.typography.fontSize.base,
             letterSpacing: 1,
+            backgroundColor: theme.colors.primary.main,
+            '&:hover': {
+              backgroundColor: theme.colors.primary.dark,
+            },
           }}
           disabled={loading}
         >
@@ -69,7 +71,12 @@ export default function SignUp({ onSwitchMode }) {
       <Button
         onClick={onSwitchMode}
         size='small'
-        sx={{ textTransform: 'none', color: GREEN, fontWeight: 600, mt: 2 }}
+        sx={{ 
+          textTransform: 'none', 
+          color: theme.colors.primary.main, 
+          fontWeight: theme.typography.fontWeight.semibold, 
+          mt: 2 
+        }}
       >
         {t('alreadyHaveAccountLogin')}
       </Button>

@@ -170,7 +170,7 @@ export default function SpendingDialogs({
         amount={spendingManager.itemPartialAmount}
         onAmountChange={spendingManager.setItemPartialAmount}
         error={spendingManager.itemPartialError}
-        onConfirm={spendingManager.handleItemPartialPaid}
+        onConfirm={() => spendingManager.handleItemPartialPaid(spendings)}
         loading={loading}
         maxAmount={
           currentItem
