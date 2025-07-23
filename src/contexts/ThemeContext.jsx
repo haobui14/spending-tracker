@@ -4,7 +4,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 
 const ThemeContext = createContext();
 
-export const useThemeMode = () => {
+const useThemeMode = () => {
   const context = useContext(ThemeContext);
   if (!context) {
     throw new Error('useThemeMode must be used within a ThemeModeProvider');
@@ -12,7 +12,7 @@ export const useThemeMode = () => {
   return context;
 };
 
-export const ThemeModeProvider = ({ children }) => {
+const ThemeModeProvider = ({ children }) => {
   const [mode, setMode] = useState(() => {
     // Get saved theme from localStorage, default to 'light'
     const saved = localStorage.getItem('themeMode');
@@ -70,3 +70,10 @@ export const ThemeModeProvider = ({ children }) => {
     </ThemeContext.Provider>
   );
 };
+
+// Export the hook separately to avoid Fast Refresh issues
+// eslint-disable-next-line react-refresh/only-export-components
+export { useThemeMode };
+
+// Default export the main component
+export default ThemeModeProvider;

@@ -15,7 +15,7 @@ import SharedDashboard from './routes/SharedDashboard';
 import { auth } from './utils/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { cleanupUserCache } from './utils/cacheManager';
-import { ThemeModeProvider, useThemeMode } from './contexts/ThemeContext';
+import ThemeModeProvider, { useThemeMode } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import NavBar from './components/NavBar';
 

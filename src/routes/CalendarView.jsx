@@ -595,7 +595,7 @@ export default function CalendarView() {
                                   border: `1px solid ${
                                     item.paid 
                                       ? theme.palette.mode === "dark" ? "#10b981" : appTheme.colors.financial.paid.border
-                                      : theme.palette.mode === "dark" ? "#ef4444" : appTheme.colors.financial.unpaid.border
+                                      : theme.palette.divider
                                   }`,
                                 }}
                               >
@@ -636,16 +636,16 @@ export default function CalendarView() {
                                       size="small"
                                       label={t(item.paid ? "paid" : "unpaid")}
                                       sx={
-                                        theme.palette.mode === "dark" 
-                                          ? {
-                                              backgroundColor: item.paid ? "#065f46" : "#7f1d1d",
-                                              color: item.paid ? "#10b981" : "#ef4444",
-                                              fontWeight: 600,
-                                              border: `1px solid ${item.paid ? "#10b981" : "#ef4444"}`,
-                                            }
-                                          : item.paid 
-                                            ? appTheme.components.chip.paid
-                                            : appTheme.components.chip.unpaid
+                                        item.paid 
+                                          ? (theme.palette.mode === "dark" 
+                                              ? {
+                                                  backgroundColor: "#065f46",
+                                                  color: "#10b981",
+                                                  fontWeight: 600,
+                                                  border: "1px solid #10b981",
+                                                }
+                                              : appTheme.components.chip.paid)
+                                          : appTheme.components.chip.unpaid
                                       }
                                     />
                                   </Box>
